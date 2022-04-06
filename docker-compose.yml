@@ -64,15 +64,6 @@ services:
       KSQL_KSQL_LOGGING_PROCESSING_STREAM_AUTO_CREATE: "true"
       KSQL_KSQL_LOGGING_PROCESSING_TOPIC_AUTO_CREATE: "true"
 
-  postgres:
-    image: postgres:11.2-alpine
-    restart: always
-    container_name: postgres
-    volumes:
-      - ./postgres/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
-    ports:
-      - 5432:5432
-
   connect:
     image: confluentinc/cp-kafka-connect:7.0.0-1-ubi8
     restart: always
@@ -153,7 +144,7 @@ services:
                       echo waiting for schema; \
                       done; \
                       java -classpath \"lib/*\" clients.Producer'"
-                        
+
   producer4:
     image: cnfltraining/java-producer-avro:1.0
     container_name: producer4
@@ -203,14 +194,14 @@ services:
                       npm run start'"
 
   webserver-streams:
-    image: cnfltraining/node-webserver-avro:1.0
+    image: node-webserver-avro:2.0
     container_name: webserver-streams
     hostname: webserver-streams
     ports:
       - 3003:3000
     environment:
-      TOPIC: driver-distance-avro
-    command: "bash -c 'until curl -fsSL schema-registry:8081/subjects/ | grep driver-distance-avro-value ; \
+      TOPIC: driver-positions-string-avro
+    command: "bash -c 'until curl -fsSL schema-registry:8081/subjects/ | grep driver-positions-string-avro-value ; \
                       do sleep 1; \
                       echo waiting for schema; \
                       done; \
@@ -232,6 +223,7 @@ services:
 
   postgres:
     image: postgres:11.2-alpine
+    restart: always
     container_name: postgres
     volumes:
       - ./postgres/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
@@ -253,5 +245,6 @@ services:
       kafka-topics --bootstrap-server kafka:9092 --create --topic driver-distance-avro --partitions 3 --replication-factor 1 ;
       kafka-topics --bootstrap-server kafka:9092 --create --topic driver-augmented-avro --partitions 3 --replication-factor 1 ;
       kafka-topics --bootstrap-server kafka:9092 --create --topic _confluent-monitoring --partitions 12 --replication-factor 1 --config retention.ms=259200000 --config message.timestamp.type=LogAppendTime ;
+      kafka-topics --bootstrap-server kafka:9092 --create --topic driver-positions-string-avro --partitions 3 --replication-factor 1 ;
       true'
 
