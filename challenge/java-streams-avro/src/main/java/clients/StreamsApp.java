@@ -64,6 +64,7 @@ public class StreamsApp {
   }
 
   private static Topology getTopology() {
+
     // When you want to override serdes explicitly/selectively
     final Map<String, String> serdeConfig = Collections.singletonMap("schema.registry.url",
             "http://schema-registry:8081");
@@ -72,31 +73,43 @@ public class StreamsApp {
     final Serde<PositionString> positionStringSerde = new SpecificAvroSerde<>();
     positionStringSerde.configure(serdeConfig, false);
 
+    // Create the StreamsBuilder object to create our Topology
     final StreamsBuilder builder = new StreamsBuilder();
 
-    // create a KStream from the driver-positions-avro topic
+    // Create a KStream from the `driver-positions-avro` topic
     // configure a serdes that can read the string key, and avro value
     final KStream<String, PositionValue> positions = builder.stream(
             "driver-positions-avro",
             Consumed.with(Serdes.String(),
                     positionValueSerde));
 
+    // TO-DO: Use filter() method to filter out the events from `driver-2`.
+    //        Define the predicate in the lambda expression of the filter().
     final KStream<String, PositionValue> positionsFiltered = positions.filter(
-            (key,value) -> !key.equals("driver-2"));
+            (key,value) -> ???);
 
+    // TO-DO: Use mapValues() method to change the value of each
+    //        event from PositionValue to PositionString class.
+    //        You can check the two schemas under src/main/avro/.
+    //        Notice that position_string.avsc contains a new field
+    //        `positionString` as String type.
     final KStream<String, PositionString> positionsString = positionsFiltered.mapValues(
             value -> {
-              final Double latitude = value.getLatitude();
-              final Double longitude = value.getLongitude();
-              final String positionString = "Latitude: " + String.valueOf(latitude) +
-                      ", Longitude: " + String.valueOf(longitude);
-              return new PositionString(latitude, longitude, positionString);
+              final Double latitude = ???;
+              final Double longitude = ???;
+              final String positionString = "Latitude: " + String.valueOf(???) +
+                      ", Longitude: " + String.valueOf(???);
+              return new PositionString(???, ???, ???);
             }
     );
 
+    // Write the results to topic `driver-positions-string-avro`
+    // configure a serdes that can write the string key, and new avro value
     positionsString.to(
             "driver-positions-string-avro",
             Produced.with(Serdes.String(), positionStringSerde));
+
+    // Build the Topology
     final Topology topology = builder.build();
     return topology;
   }
