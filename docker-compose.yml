@@ -194,7 +194,7 @@ services:
                       npm run start'"
 
   webserver-streams:
-    image: node-webserver-avro:2.0
+    image: cnfltraining/node-webserver-avro:2.0
     container_name: webserver-streams
     hostname: webserver-streams
     ports:
